@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ParamountPlusScraper {
-    public static void main(String[] args) {
+    public static void scrape() {
         System.setProperty("webdriver.chrome.driver", "D:/Downloads/EXE/chromedriver-win64/chromedriver-win64/chromedriver.exe");
 
         WebDriver driver = new ChromeDriver();
@@ -397,8 +397,7 @@ public class ParamountPlusScraper {
         return value;
     }
 
-    public static void scrape() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'scrape'");
+    public static void main(String[] args) {
+        scrape(); // Call the scrape method from main for standalone execution
     }
 }

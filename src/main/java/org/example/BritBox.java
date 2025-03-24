@@ -30,9 +30,47 @@ public class BritBox {
             continueButton.click();
             WebElement passwordInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pwd")));
             passwordInput.sendKeys("#Kdp12me028");
-            WebElement signUpButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
-            signUpButton.click();
 
+            // Locate the Sign Up button
+            WebElement signUpButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
+
+            // Retry logic for clicking Sign Up button
+            int maxAttempts = 3; // Maximum number of retry attempts
+            int attempt = 1;
+            boolean redirected = false;
+
+            while (attempt <= maxAttempts && !redirected) {
+                System.out.println("Attempt " + attempt + ": Clicking Sign Up button...");
+                signUpButton.click();
+                System.out.println("Clicked Sign Up button (Attempt " + attempt + ")");
+
+                // Wait for 1 second to check if redirection happens
+                try {
+                    wait.withTimeout(Duration.ofSeconds(2)).until(
+                        ExpectedConditions.visibilityOfElementLocated(By.xpath("//h1[contains(text(), 'Choose Your Plan')]"))
+                    );
+                    System.out.println("Page redirected successfully after attempt " + attempt + ".");
+                    redirected = true;
+                } catch (Exception e) {
+                    System.out.println("Page did not redirect after attempt " + attempt + " within 1 second.");
+                    if (attempt < maxAttempts) {
+                        // Re-locate the Sign Up button in case the page state changed
+                        try {
+                            signUpButton = driver.findElement(By.cssSelector("button[type='submit']"));
+                        } catch (Exception ex) {
+                            System.out.println("Sign Up button no longer present, assuming redirection occurred.");
+                            redirected = true;
+                        }
+                    }
+                }
+                attempt++;
+            }
+
+            if (!redirected) {
+                throw new Exception("Failed to redirect to the plans page after " + maxAttempts + " attempts. Please check the website behavior or network connection.");
+            }
+
+            // Proceed with scraping plans
             List<String> genres = new ArrayList<>();
             List<String> monthlyPrices = new ArrayList<>();
             List<String> annualPrices = new ArrayList<>();
@@ -64,14 +102,12 @@ public class BritBox {
             try (FileWriter writer = new FileWriter(csvFilePath)) {
                 File dir = new File("");
                 if (!dir.exists()) dir.mkdir();
-                // Updated header with new columns
                 writer.append("Monthly Plan,Annual Plan,Genre,Quality,Devices,Ad,Download,Regional Availability\n");
                 int maxRows = genres.size();
                 for (int i = 0; i < maxRows; i++) {
                     String monthlyPrice = (i == 0 && !monthlyPrices.isEmpty()) ? monthlyPrices.get(0).replace("/month", "").replace(" CAD", "").replaceAll("\\.\\d{2}", "") : "";
                     String annualPrice = (i == 0 && !annualPrices.isEmpty()) ? annualPrices.get(0).replace("/year", "").replace(" CAD", "").replaceAll("\\.\\d{2}", "") : "";
                     String genre = i < genres.size() ? genres.get(i) : "";
-                    // Hardcoded values for new columns (these could be scraped if available on the site)
                     String quality = (i == 0) ? "\"4K UHD, Full HD, HD\"" : "";
                     String devices = (i == 0) ? "4 devices" : "";
                     String ad = (i == 0) ? "No" : "";

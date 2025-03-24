@@ -24,7 +24,7 @@ public class ScrapeAndRecommend {
 
 
         // Collect user preferences
-        System.out.print("Annual or monthly plan? (Enter 'annual' or 'monthly'): ");
+        System.out.print("Do you want Annual or monthly plan? (Enter 'annual' or 'monthly'): ");
         String planType = scanner.nextLine().trim().toLowerCase();
         while (!planType.equals("monthly") && !planType.equals("annual")) {
             System.out.print("Invalid input. Please enter 'monthly' or 'annual': ");
